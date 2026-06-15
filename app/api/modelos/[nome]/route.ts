@@ -1,4 +1,3 @@
-// app/api/modelos/[nome]/route.ts
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 
@@ -9,7 +8,19 @@ export async function GET(
   { params }: { params: Promise<{ nome: string }> }
 ) {
   const { nome } = await params;
-  const slug = decodeURIComponent(nome);
-  const rows = await sql`SELECT * FROM videos WHERE modelo_slug = ${slug} ORDER BY id`;
-  return NextResponse.json(rows);
+
+  const slug = decodeURIComponent(nome)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-");
+
+  const rows = await sql`
+    SELECT * FROM videos
+    WHERE modelo_slug = ${slug}
+    ORDER BY id
+  `;
+
+  const banner_id = rows.find((r: any) => r.banner_id)?.banner_id ?? null;
+
+  return NextResponse.json({ videos: rows, banner_id });
 }

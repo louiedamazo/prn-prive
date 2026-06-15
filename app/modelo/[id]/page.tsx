@@ -1,8 +1,9 @@
 import ModeloClient from "./ModeloClient";
 
-async function getVideos(nome: string) {
+async function getModelo(nome: string) {
+  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/modelos/${encodeURIComponent(nome)}`,
+    `${base}/api/modelos/${encodeURIComponent(nome)}`,
     { cache: "no-store" }
   );
   return res.json();
@@ -15,16 +16,15 @@ export default async function ModeloPage({
 }) {
   const { id } = await params;
   const nome = decodeURIComponent(id);
-  const videos = await getVideos(nome);
-
-  const slug = nome.toLowerCase().replace(/ /g, "-");
-  const bannerUrl = `/modelos/${slug}.png`;
+  const data = await getModelo(nome);
+  const videos = data?.videos ?? [];
+  const banner_id = data?.banner_id ?? null;
 
   return (
     <ModeloClient
       nome={nome}
       videos={videos}
-      bannerUrl={bannerUrl}
+      banner_id={banner_id}
     />
   );
 }

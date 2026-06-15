@@ -2,8 +2,9 @@
 import Link from "next/link";
 
 async function getModelos(page: number) {
+  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/modelos?page=${page}&limit=8`,
+    `${base}/api/modelos?page=${page}&limit=8`,
     { cache: "no-store" }
   );
   return res.json();
