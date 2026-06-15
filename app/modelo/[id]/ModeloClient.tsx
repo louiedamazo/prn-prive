@@ -89,6 +89,16 @@ export default function ModeloClient({
     }
   }
 
+  function handleBannerLoad() {
+    if (bannerRef.current) {
+      gsap.to(bannerRef.current, {
+        opacity: 1,
+        duration: 0.9,
+        ease: "power2.out",
+      });
+    }
+  }
+
   return (
     <div style={{ background: "#0e0e0e", minHeight: "100vh", position: "relative" }}>
 
@@ -123,14 +133,28 @@ export default function ModeloClient({
         </button>
       </div>
 
+      {/* ── BANNER com fade-in suave ── */}
       {bannerUrl && (
-        <div ref={bannerRef} style={{ width: "100%", position: "relative", zIndex: 2 }}>
+        <div
+          ref={bannerRef}
+          style={{
+            width: "100%",
+            position: "relative",
+            zIndex: 2,
+            opacity: 0, // começa invisível
+          }}
+        >
           <img
             src={bannerUrl}
             alt={nome}
             style={{ width: "100%", height: "auto", display: "block" }}
+            onLoad={handleBannerLoad}
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
+              // mesmo com erro, mostra o container para não ficar preso em opacity 0
+              if (bannerRef.current) {
+                gsap.to(bannerRef.current, { opacity: 1, duration: 0.4 });
+              }
             }}
           />
           <div
