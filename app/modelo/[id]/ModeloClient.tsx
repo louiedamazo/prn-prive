@@ -26,6 +26,7 @@ export default function ModeloClient({
 }) {
   const [page, setPage] = useState(1);
   const [activeVideo, setActiveVideo] = useState<Video | null>(null);
+  const [bannerLoaded, setBannerLoaded] = useState(!banner_id); // sem banner = já pronto
   const router = useRouter();
 
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -39,7 +40,9 @@ export default function ModeloClient({
   const totalPages = Math.ceil(videos.length / PER_PAGE);
   const paged = videos.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
+  // Cards só animam depois que o banner estiver visível
   useEffect(() => {
+    if (!bannerLoaded) return;
     if (!wrapperRef.current) return;
     const cards = wrapperRef.current.querySelectorAll(".thumb-card");
     if (cards.length === 0) return;
@@ -56,7 +59,7 @@ export default function ModeloClient({
       });
     }, wrapperRef);
     return () => ctx.revert();
-  }, [page, paged.length]);
+  }, [page, paged.length, bannerLoaded]);
 
   useEffect(() => {
     if (activeVideo && modalRef.current) {
@@ -75,6 +78,25 @@ export default function ModeloClient({
     }
   }, [activeVideo]);
 
+  function handleBannerLoad() {
+    setBannerLoaded(true);
+    if (bannerRef.current) {
+      gsap.to(bannerRef.current, {
+        opacity: 1,
+        duration: 0.9,
+        ease: "power2.out",
+      });
+    }
+  }
+
+  function handleBannerError(e: React.SyntheticEvent<HTMLImageElement>) {
+    (e.target as HTMLImageElement).style.display = "none";
+    setBannerLoaded(true); // libera os cards mesmo com erro
+    if (bannerRef.current) {
+      gsap.to(bannerRef.current, { opacity: 1, duration: 0.3 });
+    }
+  }
+
   function closeVideo() {
     if (modalRef.current) {
       gsap.to(modalRef.current, {
@@ -86,16 +108,6 @@ export default function ModeloClient({
       });
     } else {
       setActiveVideo(null);
-    }
-  }
-
-  function handleBannerLoad() {
-    if (bannerRef.current) {
-      gsap.to(bannerRef.current, {
-        opacity: 1,
-        duration: 0.9,
-        ease: "power2.out",
-      });
     }
   }
 
@@ -133,29 +145,17 @@ export default function ModeloClient({
         </button>
       </div>
 
-      {/* ── BANNER com fade-in suave ── */}
       {bannerUrl && (
         <div
           ref={bannerRef}
-          style={{
-            width: "100%",
-            position: "relative",
-            zIndex: 2,
-            opacity: 0, // começa invisível
-          }}
+          style={{ width: "100%", position: "relative", zIndex: 2, opacity: 0 }}
         >
           <img
             src={bannerUrl}
             alt={nome}
             style={{ width: "100%", height: "auto", display: "block" }}
             onLoad={handleBannerLoad}
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-              // mesmo com erro, mostra o container para não ficar preso em opacity 0
-              if (bannerRef.current) {
-                gsap.to(bannerRef.current, { opacity: 1, duration: 0.4 });
-              }
-            }}
+            onError={handleBannerError}
           />
           <div
             style={{
@@ -184,6 +184,7 @@ export default function ModeloClient({
         </div>
       )}
 
+      {/* Cards ficam invisíveis até o banner estar pronto */}
       <div
         ref={wrapperRef}
         style={{
@@ -193,6 +194,8 @@ export default function ModeloClient({
           position: "relative",
           zIndex: 2,
           boxSizing: "border-box" as const,
+          opacity: bannerLoaded ? undefined : 0,
+          transition: "opacity 0s",
         }}
       >
         <div style={{ padding: "20px 0" }}>
