@@ -1,15 +1,17 @@
 import type { NextConfig } from "next";
-import withPWAInit from "next-pwa";
+import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
   dest: "public",
   register: true,
-  skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  workboxOptions: {
+    skipWaiting: true,
+  },
 });
 
 const nextConfig: NextConfig = {
   turbopack: {},
 };
 
-export default withPWA(nextConfig as any);
+export default withPWA(nextConfig);
